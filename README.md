@@ -3,28 +3,28 @@ PyTorch implementation for our paper (submitted):
 
 "Deep matched filtering for retinal vessel segmentation"
 
-The full material will be made available once the article is accepted!!!
+The full material will be made available once the manuscript is accepted!!!
 
 ## Project
 
 ```
-Project for task1:Segmentation
-    ├── data (code for datasets)
+Project for WS-DMF
+    ├── data 
         ├── eyeset.py (dataset & dataloader & data pre-processing)  
         └── ...  
-    ├── nets (related models)  
+    ├── nets 
         ├── modules/activation.py (activation functions)  
         ├── modules/attention.py (attention modules)  
         ├── conv.py (convolution layers)  
-        ├── dmfu.py (deep matched filtering-UNet)  
+        ├── dmfu.py (deep matched filtering)  
         ├── lunet.py (lightweight UNet)  
-        ├── rot.py (APC layer related rotation regularization)  
+        ├── rot.py (APC layer related OAL loss function)  
         └── ...   
-    ├── utils (package for segmentation with torch)  
+    ├── utils  
         ├── loss.py (loss function)  
         ├── optim.py (optimizer for training)  
         └── ...  
-    ├── build.py (implementation for our network (WS-DMF))  
+    ├── build.py (implementation for WS-DMF)  
     ├── grad.py (implementation for backgrading)  
     ├── loop.py (implementation for training)  
     ├── main.py (implementation for main function)  
