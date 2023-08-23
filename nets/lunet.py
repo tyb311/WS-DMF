@@ -133,59 +133,12 @@ class LUNet(nn.Module):
 		self.pred = self.aux(x)
 		return self.pred
 
-def bunet(**args):
-	ConvBlock.attention = DemoConv2d
-	net = LUNet(**args)
-	net.__name__ = 'bunet'
-	return net
-
 def lunet(**args):
 	ConvBlock.attention = None
 	net = LUNet(**args)
 	net.__name__ = 'lunet'
 	return net
 
-def munet(**args):
-	ConvBlock.attention = 'siamam'
-	net = LUNet(**args)
-	net.__name__ = 'munet'
-	return net
-	
-def punet(**args):
-	ConvBlock.attention='ppolar'
-	net = LUNet(**args)
-	net.__name__ = 'punet'
-	return net
-	
-def sbau(**args):
-	ConvBlock.attention='spolar'
-	ConvBlock.MyConv = BasicConv2d
-	net = LUNet(**args)
-	net.__name__ = 'sbau'
-	return net
-def sdou(**args):
-	ConvBlock.attention='spolar'
-	ConvBlock.MyConv = DoverConv2d
-	net = LUNet(**args)
-	net.__name__ = 'sdou'
-	return net
-def spyu(**args):
-	ConvBlock.attention='spolar'
-	ConvBlock.MyConv = PyridConv2d
-	net = LUNet(**args)
-	net.__name__ = 'spyu'
-	return net
-def scdu(**args):
-	ConvBlock.attention='spolar'
-	ConvBlock.MyConv = CDiff
-	net = LUNet(**args)
-	net.__name__ = 'scdu'
-	return net
-def sunet(**args):
-	ConvBlock.attention = None
-	net = LUNet(layers=(32,16,8,4,1), **args)
-	net.__name__ = 'sunet'
-	return net
 #end#
 
 
@@ -193,13 +146,7 @@ if __name__ == '__main__':
 	import time
 
 	net = lunet()
-	# net = bunet()
-	# net = punet()
-	# net = sunet()
-	# net = scdu()
-	# net = spyu()
-	# net = sbau()
-	net = sunet()
+	
 	net.use_render = True
 
 
@@ -211,14 +158,7 @@ if __name__ == '__main__':
 
 	for y in ys:
 		print('pred:', y.shape)
-	# print(net.__name__, y['loss'])
-
-	# sampler = MLPSampler(top=4, low=0, mode='hard')
-	# net.train()
-	# l = net.regular(sampler, torch.rand(2,1,64,64), torch.rand(2,1,64,64), return_loss=False)
-	# print(net.__name__, l.item())
-
-	# plot(net.emb)
+		
 	print('Params model:',sum(p.numel() for p in net.parameters() if p.requires_grad))
 
 	# net = nn.Conv2d(3, 8, 7, 1, 0)

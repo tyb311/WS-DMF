@@ -60,30 +60,8 @@ def pil_tran(pic, tran=None):
 			pic[key] = pic[key].transpose(tran)
 	return pic
 
-# class Aug4Val(object):
-#     number = 8
-#     @staticmethod
-#     def forward(pic, flag):
-#         flag %= Aug4Val.number
-#         if flag==0:
-#             return pic
-#         pic = arrs2imgs(pic)
-#         if flag==1:
-#             return imgs2arrs(pil_tran(pic, tran=Image.FLIP_LEFT_RIGHT))
-#         if flag==2:
-#             return imgs2arrs(pil_tran(pic, tran=Image.FLIP_TOP_BOTTOM))
-#         if flag==3:
-#             return imgs2arrs(pil_tran(pic, tran=Image.ROTATE_180))
-#         if flag==4:
-#             return imgs2arrs(pil_tran(pic, tran=[Image.TRANSPOSE]))
-#         if flag==5:
-#             return imgs2arrs(pil_tran(pic, tran=[Image.TRANSPOSE,Image.FLIP_TOP_BOTTOM]))
-#         if flag==6:
-#             return imgs2arrs(pil_tran(pic, tran=[Image.TRANSPOSE,Image.FLIP_LEFT_RIGHT]))
-#         if flag==7:
-#             return imgs2arrs(pil_tran(pic, tran=[Image.TRANSPOSE,Image.ROTATE_180]))
 class Aug4Val(object):
-	number = 4
+	number = 8
 	@staticmethod
 	def forward(pic, flag):
 		flag %= Aug4Val.number
@@ -96,80 +74,23 @@ class Aug4Val(object):
 			return imgs2arrs(pil_tran(pic, tran=Image.Transpose.FLIP_TOP_BOTTOM))
 		if flag==3:
 			return imgs2arrs(pil_tran(pic, tran=Image.Transpose.ROTATE_180))
-		# if flag==4:
-		# 	return imgs2arrs(pil_tran(pic, tran=[Image.FLIP_LEFT_RIGHT,Image.FLIP_TOP_BOTTOM]))
-		# if flag==5:
-		# 	return imgs2arrs(pil_tran(pic, tran=[Image.ROTATE_180,Image.FLIP_TOP_BOTTOM]))
-		# if flag==6:
-		# 	return imgs2arrs(pil_tran(pic, tran=[Image.ROTATE_180,Image.FLIP_LEFT_RIGHT]))
-		# if flag==7:
-		# 	return imgs2arrs(pil_tran(pic, tran=[Image.ROTATE_180,Image.FLIP_LEFT_RIGHT,Image.FLIP_TOP_BOTTOM]))
+		if flag==4:
+			return imgs2arrs(pil_tran(pic, tran=[Image.TRANSPOSE]))
+		if flag==5:
+			return imgs2arrs(pil_tran(pic, tran=[Image.Image.TRANSPOSE,Image.Transpose.FLIP_TOP_BOTTOM]))
+		if flag==6:
+			return imgs2arrs(pil_tran(pic, tran=[Image.Image.TRANSPOSE,Image.Transpose.FLIP_LEFT_RIGHT]))
+		if flag==7:
+			return imgs2arrs(pil_tran(pic, tran=[Image.Image.TRANSPOSE,Image.Transpose.FLIP_LEFT_RIGHT,Image.Transpose.FLIP_TOP_BOTTOM]))
 
-def random_channel(rgb, tran=None):##cv2.COLOR_RGB2HSV,HSV不好#
-	if tran is None:
-		tran = random.choice([
-			cv2.COLOR_RGB2GRAY, cv2.COLOR_RGB2BGR, 
-			cv2.COLOR_RGB2XYZ, cv2.COLOR_RGB2LAB,
-			cv2.COLOR_RGB2HLS, cv2.COLOR_RGB2LUV,        
-			cv2.COLOR_RGB2YCrCb, cv2.COLOR_RGB2YUV,
-			])
-	# if rgb.shape[-1]!=3:#单通道图片不做变换
-	#     return rgb
-	rgb = cv2.cvtColor(rgb, tran)
-	# if tran==cv2.COLOR_RGB2LAB:
-	# 	rgb = cv2.split(rgb)[0]
-	# elif tran==cv2.COLOR_RGB2XYZ:
-	# 	rgb = cv2.split(rgb)[0]
-	# elif tran==cv2.COLOR_RGB2LUV:
-	# 	rgb = cv2.split(rgb)[0]
-	# elif tran==cv2.COLOR_RGB2HLS:
-	# 	rgb = cv2.split(rgb)[1]
-	# elif tran==cv2.COLOR_RGB2YCrCb:
-	# 	rgb = cv2.split(rgb)[0]
-	# elif tran==cv2.COLOR_RGB2YUV:
-	# 	rgb = cv2.split(rgb)[0]
-	# elif tran==cv2.COLOR_RGB2BGR:
-	# 	rgb = cv2.split(rgb)[1]
-	
-	if tran != cv2.COLOR_RGB2GRAY:
-		rgb = random.choice(cv2.split(rgb))#
-	return rgb
-
-class Aug4CSA(object):#Color Space Augment
-	number = 8
-	trans = [
-			cv2.COLOR_RGB2GRAY, cv2.COLOR_RGB2BGR, 
-			cv2.COLOR_RGB2XYZ, cv2.COLOR_RGB2LAB,
-			cv2.COLOR_RGB2HLS, cv2.COLOR_RGB2LUV,        
-			cv2.COLOR_RGB2YCrCb, cv2.COLOR_RGB2YUV,
-			]
-	@staticmethod
-	def forward(pic, flag):
-		flag %= Aug4CSA.number
-		pic['img'] = random_channel(pic['img'], tran=Aug4CSA.trans[flag])
-		return pic
-	@staticmethod
-	def forward_train(pic):  #random channel mixture
-		a = random_channel(pic['img'])
-		b = random_channel(pic['img'])
-		alpha = random.random()
-		pic['img'] = (alpha*a + (1-alpha)*b).astype(np.uint8)
-		return pic
 
 class EyeSetResource(object):
 	size = dict()
 	def __init__(self, folder='../eyeset', dbname='drive', loo=None, **args):
 		super(EyeSetResource, self).__init__()
 		
-		if os.path.isdir('/home/tan/datasets/seteye'):
-			self.folder = '/home/tan/datasets/seteye'
-		elif os.path.isdir('/home/tyb/datasets/seteye'):
-			self.folder = '/home/tyb/datasets/seteye'
-		else:
-			self.folder = '../datasets/seteye'
-		# else:
-		# 	raise EnvironmentError('No thi root!')
-		# self.folder = folder
+		self.folder = '/home/tan/datasets/seteye'
+			
 		self.dbname = dbname
 
 		self.imgs, self.labs, self.fovs, self.skes = self.getDataSet(self.dbname)
@@ -269,32 +190,8 @@ IAA_NOISE = iaa.OneOf(children=[# Noise
 		iaa.ImpulseNoise(0.01),
 	]
 )
-IAA_BLEND = iaa.OneOf(children=[# Noise
-		# Blend
-		iaa.BlendAlpha((0.0, 1.0), foreground=iaa.Add(seed=random.randint(0,9)), background=iaa.Multiply(seed=random.randint(0,9))),
-		iaa.BlendAlpha((0.0, 1.0), foreground=iaa.Add(seed=random.randint(0,9)), background=iaa.Add(seed=random.randint(0,9))),
-		iaa.BlendAlpha((0.0, 1.0), foreground=iaa.Multiply(seed=random.randint(0,9)), background=iaa.Multiply(seed=random.randint(0,9))),
-		iaa.BlendAlpha((0.0, 1.0), foreground=iaa.Multiply(seed=random.randint(0,9)), background=iaa.Add(seed=random.randint(0,9))),
 
-		iaa.BlendAlphaElementwise(.3, iaa.Clouds(), seed=random.randint(0,9), per_channel=True),
-		iaa.BlendAlphaElementwise(.5, iaa.AddToBrightness(21), seed=random.randint(0,9), per_channel=True),
-		iaa.BlendAlphaElementwise(.5, iaa.AddToHue(21), seed=random.randint(0,9), per_channel=True),
-		iaa.BlendAlphaElementwise(.5, iaa.AddToSaturation(21), seed=random.randint(0,9), per_channel=True),
-
-		iaa.BlendAlphaVerticalLinearGradient(iaa.Clouds(), max_value=.5, seed=random.randint(0,9)),
-		iaa.BlendAlphaVerticalLinearGradient(iaa.AddToHue((-30, 30)), seed=random.randint(0,9)),
-		iaa.BlendAlphaVerticalLinearGradient(iaa.AddToSaturation((-30, 30)), seed=random.randint(0,9)),
-		iaa.BlendAlphaVerticalLinearGradient(iaa.AddToBrightness((-30, 30)), seed=random.randint(0,9)),
-
-		iaa.BlendAlphaHorizontalLinearGradient(iaa.Clouds(), max_value=.5, seed=random.randint(0,9)),
-		iaa.BlendAlphaHorizontalLinearGradient(iaa.AddToHue((-30, 30)), seed=random.randint(0,9)),
-		iaa.BlendAlphaHorizontalLinearGradient(iaa.AddToSaturation((-30, 30)), seed=random.randint(0,9)),
-		iaa.BlendAlphaHorizontalLinearGradient(iaa.AddToBrightness((-30, 30)), seed=random.randint(0,9)),
-
-		iaa.BlendAlphaCheckerboard(7, 7, iaa.AddToHue((-30, 30)), seed=random.randint(0,9)),
-	]
-)
-TRANS_NOISE = iaa.Sequential(children=[IAA_NOISE, IAA_BLEND])
+TRANS_NOISE = iaa.Sequential(children=[IAA_NOISE])
 
 from albumentations import (
 	# 空间
@@ -314,25 +211,16 @@ from albumentations import (
 ) # 图像变换函数
 
 TRANS_TEST = Compose([CLAHE(p=1), RandomGamma(p=1)])#
-TRANS_AAUG = Compose([
-	# OneOf([
-	# 	IAAPiecewiseAffine(p=1), ElasticTransform(p=1),
-	# 	ShiftScaleRotate(p=1, scale_limit=0, rotate_limit=45),
-	# 	ShiftScaleRotate(p=1, scale_limit=0.25, rotate_limit=0), 
-	# 	OpticalDistortion(p=1, distort_limit=.5, shift_limit=0.5), 
-	# 	GridDistortion(p=1, num_steps=1), 
-	# 	], p=.7),        
+TRANS_AAUG = Compose([       
 	OneOf([Transpose(p=1), RandomRotate90(p=1), ], p=.7),
 	Flip(p=.7), 
-	# CLAHE(p=.5), RandomGamma(p=.5),
-	# RandomGridShuffle(p=1, grid=(5,5)),
 ])
 
 
 from skimage import morphology
 from torch.utils.data import DataLoader, Dataset
 class EyeSetGenerator(Dataset, EyeSetResource):
-	exeNums = {'train':Aug4CSA.number, 'val':Aug4Val.number, 'test':1}
+	exeNums = {'train':8, 'val':Aug4Val.number, 'test':1}
 	exeMode = 'train'#train, val, test
 	exeData = 'train'#train, test, full
 
@@ -399,11 +287,7 @@ class EyeSetGenerator(Dataset, EyeSetResource):
 			picaug = augCrop(image=imag, mask=mask)
 			imag, mask = picaug['image'], picaug['mask']
 
-			# 随机增强
-			# if random.choice([True, False]):
 			imag = TRANS_TEST(image=imag)['image']
-			# if random.choice([True, False]):
-			# imag = TRANS_TEST(image=imag)['image']
 
 			# 添加噪声
 			imag = TRANS_NOISE(image=imag)
@@ -413,8 +297,6 @@ class EyeSetGenerator(Dataset, EyeSetResource):
 			
 			pics['img'] = imag
 			pics['lab'], pics['fov'], pics['ske'] = mask[:,:,0],mask[:,:,1],mask[:,:,2]
-			if self.use_csm:
-				pics = Aug4CSA.forward_train(pics)
 		else:
 			# pics['img'] = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
 			pics['img'] = TRANS_TEST(image=pics['img'])['image']
@@ -428,19 +310,10 @@ class EyeSetGenerator(Dataset, EyeSetResource):
 
 			if self.isValMode:# 验证增强->非测试，则增强
 				flag = idx//self.lens[self.exeData]
-				# pics = Aug4CSA.forward(pics, flag)
 				pics = Aug4Val.forward(pics, flag)
-			# elif self.isTestMode:	
-				# pics = Aug4CSA.forward_test(pics)
 
 		if pics['img'].shape[-1]==3:#	green or gray
 			pics['img'] = cv2.cvtColor(pics['img'], cv2.COLOR_RGB2GRAY)
-			# pics['img'] = pics['img'][:,:,1]#莫非灰度图像比绿色通道更好一点？
-
-		# 骨架化
-		# skel = morphology.skeletonize((pics['lab']/255.0).round()).astype(np.uint8)
-		# pics['ske'] = morphology.dilation(skel, self.kernel)*255
-		# pics['ske'] = pics['ske'] | pics['lab']	#与不与，这是个问题
 
 		for key in pics.keys():
 			# print(key, pics[key].shape)
@@ -448,13 +321,6 @@ class EyeSetGenerator(Dataset, EyeSetResource):
 		return pics
 #end#
 
-def tensor2image(x):
-	x = x.squeeze().data.numpy()
-	return x
-
-def torch_dilation(x, ksize=5, stride=1):
-	return F.max_pool2d(x, (ksize, ksize), stride, ksize//2)
-	# return F.max_pool2d(x, kernel_size=(3,3), stride=2)
 
 
 
@@ -475,10 +341,6 @@ if __name__ == '__main__':
 		# print(imgs)
 		(img, lab, fov, aux) = db.parse(imgs)
 		print(img.shape, lab.shape, fov.shape, aux.shape)
-		# fov = torch_dilation(lab)
-
-		# img = torch_dilation(lab, ksize=3)
-		# fov = 1-torch_dilation(1-lab, ksize=3)
 
 		plt.subplot(221),plt.imshow(tensor2image(img))
 		plt.subplot(222),plt.imshow(tensor2image(lab))

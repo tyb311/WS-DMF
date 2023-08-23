@@ -73,41 +73,19 @@ def pyFile2Txt(listName, files, strStart='#start#', strEnd='#end#', toTxt='seg')
 
 
 FILES = [
-	# 'data/trans/tran.py',
-	# 'data/trans/tran_color.py',
-	# 'data/eyenpy.py',
-	# 'data/eyegen.py',
+
 	'data/eyeset.py',
 
-	'utils/fcal.py',
-	'utils/metric.py',
 	'utils/optim.py',
-	'utils/tensorboard.py',
-
 	'utils/loss.py',
 
 	'nets/modules/activation.py',
 	'nets/modules/attention.py',
-	# 'nets/modules/drconv.py',
-	# 'nets/modules/pyconv.py',
 
 	'nets/conv.py',
 	'nets/lunet.py',
 	'nets/rot.py',
 	'nets/dmfu.py',
-	# 'nets/lunet_v1.py',
-	# 'nets/hrnet.py',
-	# 'nets/dmf.py',
-	# 'nets/dou.py',
-	# 'nets/gunet.py',
-
-	# 'scls/nce.py',
-	# 'scls/sphere.py',
-	'scls/sample.py',
-	'scls/sim.py',
-	# 'scls/byol.py',
-	'scls/siam.py',
-	# 'scls/roma.py',
 
 	'build.py',
 	'grad.py',

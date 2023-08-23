@@ -83,18 +83,6 @@ class LUBlock(torch.nn.Module):
 
 		block = []
 		block.append(self.MyConv(inp_c, out_c, kernel_size=ksize, padding=pad))
-
-		if self.attention=='ppolar':
-			# print('ppolar')
-			block.append(ParallelPolarizedSelfAttention(out_c))
-		elif self.attention=='spolar':
-			# print('spolar')
-			block.append(SequentialPolarizedSelfAttention(out_c))
-		elif self.attention=='siamam':
-			# print('siamam')
-			block.append(simam_module(out_c))
-		# else:
-		# 	print(self.attention)
 		block.append(self.MyConv(out_c, out_c, kernel_size=ksize, padding=pad))
 		self.block = nn.Sequential(*block)
 	def forward(self, x):
@@ -167,53 +155,6 @@ class UpLUBlock(torch.nn.Module):
 			out = torch.cat([up, skip], dim=1)
 		out = self.conv_layer(out)
 		return out
-
-# class LUNet(nn.Module):
-# 	__name__ = 'lunet'
-# 	use_render = False
-# 	# def __init__(self, inp_c=1, n_classes=1, layers=(16,20,24,28,32)):
-# 	def __init__(self, inp_c=1, n_classes=1, layers=(16,16,16,16,16)):
-# 		super(LUNet, self).__init__()
-# 		self.num_features = layers[-1]
-
-# 		self.__name__ = 'u{}x{}'.format(len(layers), layers[0])
-# 		self.n_classes = n_classes
-# 		self.first = LUConv2d(inp_c, layers[0])
-
-# 		self.down_path = nn.ModuleList()
-# 		for i in range(len(layers) - 1):
-# 			block = LUBlock(inp_c=layers[i], out_c=layers[i + 1], pool=True)
-# 			self.down_path.append(block)
-
-# 		self.up_path = nn.ModuleList()
-# 		reversed_layers = list(reversed(layers))
-# 		for i in range(len(layers) - 1):
-# 			block = UpLUBlock(inp_c=reversed_layers[i], out_c=reversed_layers[i + 1])
-# 			self.up_path.append(block)
-
-# 		self.out = OutSigmoid(layers[0], n_classes)
-
-# 	def forward(self, x):
-# 		x = self.first(x)
-# 		down_activations = []
-# 		for i, down in enumerate(self.down_path):
-# 			down_activations.append(x)
-# 			# print(x.shape)
-# 			x = down(x)
-# 		down_activations.reverse()
-
-# 		for i, up in enumerate(self.up_path):
-# 			x = up(x, down_activations[i])
-
-# 		self.feat = x
-# 		x = self.out(x)
-# 		self.pred = x
-# 		return x
-
-# def lunet(**args):
-# 	net = LUNet(**args)
-# 	net.__name__ = 'lunet'
-# 	return net
 
 class LUBasicConv2d(nn.Module):
 	def __init__(self, inp_c, out_c, kernel_size=3, 
@@ -292,10 +233,12 @@ class SMFU(nn.Module):
 		# self.__name__ += 'w{}d{}'.format(width, depth)
 		self.scale = scale
 		self.channels = width
-		self.rot3 = Rotation(channels=width, ksize=3)
+		# self.rot3 = Rotation(channels=width, ksize=3)
 		self.rot5 = Rotation(channels=width, ksize=5)
-		self.rot7 = Rotation(channels=width, ksize=7)
-		self.rot9 = Rotation(channels=width, ksize=9)
+		# self.rot7 = Rotation(channels=width, ksize=7)
+		# self.rot9 = Rotation(channels=width, ksize=9)
+		for p in self.rot5.parameters():
+			p.requires_grad=False
 		self.beta0 = nn.Parameter(torch.ones(size=(1,), dtype=torch.float32))
 		self.beta1 = nn.Parameter(torch.ones(size=(1,), dtype=torch.float32))
 		self.beta2 = nn.Parameter(torch.ones(size=(1,), dtype=torch.float32))
@@ -303,10 +246,10 @@ class SMFU(nn.Module):
 		self.beta4 = nn.Parameter(torch.ones(size=(1,), dtype=torch.float32))
 		self.pooling = nn.MaxPool2d(3,2,1)
 
-		self.buff_std = LUBasicConv2d(inp_c=scale, out_c=num_con)
+		# self.buff_std = LUBasicConv2d(inp_c=scale, out_c=num_con)
 		# self.buff_vpp = LUBasicConv2d(inp_c=scale, out_c=num_con)
 		self.segfirst = LUBasicConv2d(inp_c=inp_c, out_c=width)
-		self.segfinal = OutSigmoid(num_con)
+		# self.segfinal = OutSigmoid(num_con)
 
 		self.conv_cat = nn.Sequential(
 			nn.Conv2d(2,1,1,1,0),
@@ -317,13 +260,7 @@ class SMFU(nn.Module):
 		self.predictor = None
 
 		self.encoders = nn.ModuleList()
-		self.decoders = nn.ModuleList()
 		self.divisits = nn.ModuleList()
-		self.micoders = nn.ModuleList()#MIM:Masked Image Modeling
-		self.mimfirst = LUBasicConv2d(inp_c=num_con, out_c=width)
-		self.mimfinal = OutSigmoid(width)
-		# self.conv_edge = nn.Sequential(LUBasicConv2d(1, width),LUBasicConv2d(width, num_con, activation=None))
-		# self.conv_attn = OutSigmoid(1, width)
 
 		#	用序列Block的深度模仿：匹配滤波核的尺寸变化
 		for _ in range(scale):
@@ -336,17 +273,8 @@ class SMFU(nn.Module):
 			encoder = nn.Sequential(*encoder)
 			self.divisits.append(OutSigmoid(width))
 			self.encoders.append(encoder)
-			# self.decoders.append(OutSigmoid(width))
-			self.micoders.append(nn.Sequential(LUBasicConv2d(width, width),LUBasicConv2d(width, width, activation=None)))
-
 
 		self.__name__ = 'u{}x{}'.format(len(layers), layers[0])
-		self.first = LUConv2d(inp_c, layers[0])
-
-		self.down_path = nn.ModuleList()
-		for i in range(len(layers) - 1):
-			block = LUBlock(inp_c=layers[i], out_c=layers[i + 1], pool=True)
-			self.down_path.append(block)
 
 		self.up_path = nn.ModuleList()
 		for i in range(len(layers)):
@@ -354,7 +282,6 @@ class SMFU(nn.Module):
 			self.up_path.append(block)
 
 		self.out = OutSigmoid(layers[0], 1)
-		# self.unet = LUNet(width, 1)
 
 	def regular_rot(self):
 		losSum = []
@@ -369,26 +296,18 @@ class SMFU(nn.Module):
 				losSum.append(los)
 		losSum = sum(losSum) / len(losSum)
 		return losSum
-
-	mim={}
-	def regular_mim(self, x, func=F.mse_loss):
-		x = F.interpolate(x, size=self.mim['pr'].shape[-2:], mode='bilinear', align_corners=False)
-		self.mim['gt'] = x
-		losMIM = func(self.mim['pr'], x)#Focal 或者MSE
-		# losMIM = F.mse_loss(self.pred.detach(), x)#Focal 或者MSE
-		return losMIM
 	
 	def regular_bce(self, **args):
 		return sum(self.bces_list)
 
 	def soft_argmax(self, x, beta=100):
-		# https://blog.csdn.net/hxxjxw/article/details/121596524
 		# x = x.reshape(x.shape[0], x.shape[1], -1)#[b,c,h,w]
 		soft_max = F.softmax(x*beta, dim=1).view(x.shape).clamp(0,1)
-		hard_tgt = monai.networks.utils.one_hot(soft_max.argmax(dim=1, keepdim=True), num_classes=soft_max.shape[1], dim=1)
-		loss_entropy = F.binary_cross_entropy(soft_max, hard_tgt)
-		self.bces_list.append(loss_entropy)
 		f_space = torch.std(soft_max, dim=1, keepdim=True)
+		hard_tgt = monai.networks.utils.one_hot(soft_max.argmax(dim=1, keepdim=True), num_classes=soft_max.shape[1], dim=1)
+		loss_entropy = F.binary_cross_entropy(soft_max, hard_tgt, weight=f_space.detach()) #* f_space.detach()#理应只在血管处有各向异性（朝向感知）
+		# print('regular_bce:', loss_entropy.shape, f_space.shape)
+		self.bces_list.append(loss_entropy)
 		# b,c,h,w = x.shape
 		# std = self.orientor(soft_max.permute(0,2,3,1).reshape(-1,c)).reshape(b,h,w,1).permute(0,3,1,2)
 		# return std
@@ -438,13 +357,13 @@ class SMFU(nn.Module):
 		self.pred = y
 		return self.pred
 
-		auxs.append(y)
-		auxs.reverse()
-		if self.flag_down:
-			self.pred = F.interpolate(self.pred, size=(h,w), mode='bilinear', align_corners=False)
-		for i in range(len(auxs)):
-			auxs[i] = F.interpolate(auxs[i], size=(h,w), mode='bilinear', align_corners=False)
-		return auxs
+		# auxs.append(y)
+		# auxs.reverse()
+		# if self.flag_down:
+		# 	self.pred = F.interpolate(self.pred, size=(h,w), mode='bilinear', align_corners=False)
+		# for i in range(len(auxs)):
+		# 	auxs[i] = F.interpolate(auxs[i], size=(h,w), mode='bilinear', align_corners=False)
+		# return auxs
 
 def smf(**args):
 	net = SMFU(**args)
