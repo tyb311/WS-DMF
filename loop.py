@@ -248,15 +248,6 @@ class KerasTorch(KerasBackend):
 			# print(img.shape)
 			out = self.model(img)
 
-			if self.args.ct:#hasattr(self.model, 'constraint'):
-				los1, los2 = self.model.constraint(lab=lab, fov=fov, aux=aux, fun=self.loss_ct)
-				los = (los1 * self.args.coff_ds + los2) * self.args.coff_ct
-				losInit.append(los)
-
-			if self.args.coff_ce!=0:
-				losStd = self.model.fcn.regular_bce()*self.args.coff_ce
-				losInit.append(losStd)
-
 			if self.args.coff_rot!=0:
 				los = self.model.fcn.regular_rot() * self.args.coff_rot
 				losInit.append(los)
