@@ -41,20 +41,8 @@ class SeqNet(nn.Module):#Supervised contrastive learning segmentation network
 		self.fcn = eval(type_net+'(num_emb=num_emb)')#build_model(cfg['net']['fcn'])
 		self.seg = eval(type_seg+'(inp_c=32)')#build_model(cfg['net']['seg'])
 
-		self.projector = MlpNorm(32, num_emb)#self.fcn.projector#MlpNorm(32, 64, num_emb)
-		self.predictor = MlpNorm(num_emb, num_emb)#self.fcn.predictor#MlpNorm(32, 64, num_emb)
-
-		self.morpholer1 = MorphBlock(32+2)#形态学模块使用一个还是两个哪？
-		self.morpholer2 = MorphBlock(32+2)#形态学模块使用一个还是两个哪？
 		self.__name__ = '{}X{}'.format(self.fcn.__name__, self.seg.__name__)
 
-	def constraint(self, aux=None, fun=None, **args):
-		aux = torch_dilation(aux)
-		los1 = fun(self.sdm1, aux)
-		los2 = fun(self.sdm2, aux)
-		# if self.__name__.__contains__('dmf'):
-		# 	los1 = los1 + self.fcn.regular()*0.1
-		return los1, los2
 	
 	tmp = {}
 	def forward(self, x):
@@ -62,10 +50,7 @@ class SeqNet(nn.Module):#Supervised contrastive learning segmentation network
 		self.feat = self.fcn.feat
 		out = self.seg(self.feat)
 		self.pred = out
-		# print(self.fcn.feat.shape, self.seg.feat.shape)
-		self.sdm1 = self.morpholer1(self.fcn.feat, aux)
-		self.sdm2 = self.morpholer2(self.seg.feat, out)
-		self.tmp = {'sdm1':self.sdm1, 'sdm2':self.sdm2}
+
 
 		if self.training:
 			if isinstance(aux, (tuple, list)):
