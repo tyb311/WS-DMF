@@ -27,7 +27,7 @@ sys.path.append('..')
 
 from utils import *
 from nets import *
-from scls import *
+#from scls import *
 
 
 
